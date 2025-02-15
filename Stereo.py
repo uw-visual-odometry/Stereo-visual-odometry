@@ -1,15 +1,15 @@
 import numpy as np
 import cv2
 
-ImT1_L = cv2.imread('/Volumes/Files/dataset/sequences/00/image_0/000000.png', 0)  # 0 flag returns a grayscale image
-ImT1_R = cv2.imread('/Volumes/Files/dataset/sequences/00/image_1/000000.png', 0)
+ImT1_L = cv2.imread('./src/left_half1.jpg', 0)  # 0 flag returns a grayscale image
+ImT1_R = cv2.imread('./src/right_half1.jpg', 0)
 
-ImT2_L = cv2.imread('/Volumes/Files/dataset/sequences/00/image_0/000001.png', 0)
-ImT2_R = cv2.imread('/Volumes/Files/dataset/sequences/00/image_1/000001.png', 0)
+ImT2_L = cv2.imread('./src/left_half2.jpg', 0)
+ImT2_R = cv2.imread('./src/right_half2.jpg', 0)
 
-# cv2.imshow('ImT1_L', ImT1_L)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+#cv2.imshow('ImT1_L', ImT1_L)
+#cv2.waitKey(0)
+#cv2.destroyAllWindows()
 
 block = 15
 
@@ -88,8 +88,13 @@ lk_params = dict(winSize=(15, 15),
 
 p0 = cv2.goodFeaturesToTrack(ImT1_L, mask=None, **feature_params)
 p1, st, err = cv2.calcOpticalFlowPyrLK(ImT1_L, ImT2_L, p0, None, **lk_params)
-
 '''
+cv2.imshow('image1',ImT1_L)
+cv2.waitKey(0)
+
+cv2.imshow('image',ImT2_L)
+cv2.waitKey(0)
+
 cv2.polylines(ImT1_L, np.int32(p1), True, (0,255,255), 5);
 cv2.polylines(ImT2_L, np.int32(p1), True, (0,255,255), 5);
 
@@ -104,7 +109,7 @@ cv2.destroyAllWindows()
 
 # Create M array
 M = [0] * len(p1)
-for i in range(100):
+for i in range(len(M)):
     M[i] = [0] * len(p1)
 
 # Set M[i][j] to 1 for all points i ,j in which are the same distance apart in image t+1 and image t
