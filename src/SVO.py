@@ -22,15 +22,15 @@ if __name__ == "__main__":
         useRansac = ~~int(sys.argv[5])
         showLiveTrajectory = ~~int(sys.argv[6])
     except:
-        useSIFT = True
+        useSIFT = False
         useRansac = True
         showLiveTrajectory = False
 
-    plotTrajectory = False
-    outputDebug = False
+    plotTrajectory = True
+    outputDebug = True
     print('SIFT:', useSIFT, 'ransac:', useRansac, 'showTrajectory:', showLiveTrajectory)
 
-    datapath = '.'
+    datapath = '../frames'
     #
     # calibFileName = datapath + '/calib.txt'
     # calibFile = open(calibFileName, 'r').readlines()
@@ -46,18 +46,18 @@ if __name__ == "__main__":
     #     for column in range(4):
     #         Proj2[row, column] = float(P2Vals[row*4 + column + 1])
 
-Proj1 = [[516.12439269 ,  0.  ,       468.51480865 ,  0.        ],
- [  0.   ,      516.12439269, 295.33118057  , 0.        ],
- [  0.   ,        0.      ,     1.     ,      0.        ]]
+Proj1 = [[516.12439269, 0., 468.51480865, 0.],
+         [0., 516.12439269, 295.33118057, 0.],
+         [0., 0., 1., 0.]]
 Proj1 = np.array(Proj1)
 
-Proj2 = [[ 5.16124393e+02 , 0.00000000e+00,  4.68514809e+02, -3.41186792e+04],
- [ 0.00000000e+00 , 5.16124393e+02 , 2.95331181e+02,  0.00000000e+00],
- [ 0.00000000e+00 , 0.00000000e+00 , 1.00000000e+00,  0.00000000e+00]]
+Proj2 = [[5.16124393e+02, 0.00000000e+00, 4.68514809e+02, -3.41186792e+04],
+         [0.00000000e+00, 5.16124393e+02, 2.95331181e+02, 0.00000000e+00],
+         [0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]]
 Proj2 = np.array(Proj2)
 
-leftImagePath = datapath + '/left_half'
-rightImagePath = datapath + '/right_half'
+leftImagePath = datapath + '/left/'
+rightImagePath = datapath + '/right/'
 
 translation = None
 rotation = None
@@ -65,29 +65,29 @@ rotation = None
 fpPoseOut = open('svoPoseOut_Clique.txt', 'w')
 outtxt = ''
 groundTruthTraj = []
-if plotTrajectory:
-    poseFile = datapath + '/' + '{0:02d}'.format(sequence) + '.txt'
-    fpPoseFile = open(poseFile, 'r')
-    groundTruthTraj = fpPoseFile.readlines()
+# if plotTrajectory:
+# poseFile = datapath + '/' + '{0:02d}'.format(sequence) + '.txt'
+# fpPoseFile = open(poseFile, 'r')
+# groundTruthTraj = fpPoseFile.readlines()
 
-canvasH = 1200
-canvasW = 1200
+canvasH = 3000
+canvasW = 3000
 traj = np.zeros((canvasH, canvasW, 3), dtype=np.uint8)
 
-for frm in range(startFrame + 1, endFrame + 1):
+for frm in range(startFrame + 1, endFrame + 1, 5):
 
     # reuse T-1 data instead of reading again-again
     # same with feature computation - anything that can be reused
-    imgPath = leftImagePath + str(1) + '.jpg';
+    imgPath = leftImagePath + f'frame_{frm:04}.jpg'
     ImT1_L = cv2.imread(imgPath, 0)  # 0 flag returns a grayscale image
     print(imgPath)
-    imgPath = rightImagePath + str(1) + '.jpg';
+    imgPath = rightImagePath + f'frame_{frm:04}.jpg'
     ImT1_R = cv2.imread(imgPath, 0)
 
-    imgPath = leftImagePath + str(2) + '.jpg';
+    imgPath = leftImagePath + f'frame_{frm + 1:04}.jpg'
     ImT2_L = cv2.imread(imgPath, 0)
 
-    imgPath = rightImagePath + str(2) + '.jpg';
+    imgPath = rightImagePath + f'frame_{frm + 1:04}.jpg'
     ImT2_R = cv2.imread(imgPath, 0)
 
     block = 11
@@ -97,7 +97,6 @@ for frm in range(startFrame + 1, endFrame + 1):
 
     disparityEngine = cv2.StereoSGBM_create(minDisparity=0, numDisparities=32, blockSize=block, P1=P1, P2=P2)
     ImT1_disparity = disparityEngine.compute(ImT1_L, ImT1_R).astype(np.float32)
-    # cv2.imwrite('disparity.png', ImT1_disparity)
     ImT1_disparityA = np.divide(ImT1_disparity, 16.0)
 
     ImT2_disparity = disparityEngine.compute(ImT2_L, ImT2_R).astype(np.float32)
@@ -138,9 +137,9 @@ for frm in range(startFrame + 1, endFrame + 1):
                 else:
                     for kpt in keypoints:
                         kp.append(kpt)
-    
+
     if outputDebug:
-        saveDebugImg(ImT1_L, frm - 1, 'keypoints', np.array(kp), color=(255, 0, 0))
+        saveDebugImg(ImT1_L, frm - 1, 'keypoints', kp, color=(255, 0, 0))
     # import pdb; pdb.set_trace()
     # pack keypoint 2-d coords into numpy array
     trackPoints1 = cv2.KeyPoint_convert(kp)
@@ -255,7 +254,6 @@ for frm in range(startFrame + 1, endFrame + 1):
                 # r, t generation
             Rmat = genEulerZXZMatrix(dOut[0], dOut[1], dOut[2])
             translationArray = np.array([[dOut[3]], [dOut[4]], [dOut[5]]])
-            print('if')
         else:
             # tunable - def 0.01
             distDifference = 0.2
@@ -323,12 +321,11 @@ for frm in range(startFrame + 1, endFrame + 1):
                 # r, t generation
                 Rmat = genEulerZXZMatrix(optRes.x[0], optRes.x[1], optRes.x[2])
                 translationArray = np.array([[optRes.x[3]], [optRes.x[4]], [optRes.x[5]]])
-            print('else')
-        print(translationArray)
         if (isinstance(translation, np.ndarray)):
             translation = translation + np.matmul(rotation, translationArray)
         else:
             translation = translationArray
+        print(translation)
 
         if (isinstance(rotation, np.ndarray)):
             rotation = np.matmul(Rmat, rotation)
@@ -361,23 +358,26 @@ for frm in range(startFrame + 1, endFrame + 1):
         canvasWCorr = 290
         canvasHCorr = 200
         draw_x, draw_y = int(translation[0]) + canvasWCorr, int(translation[2]) + canvasHCorr
-        grndPose = groundTruthTraj[frm].strip().split()
-        grndX = int(float(grndPose[3])) + canvasWCorr
-        grndY = int(float(grndPose[11])) + canvasHCorr
 
-        cv2.circle(traj, (grndX, grndY), 1, (0, 0, 255), 2)
-        cv2.rectangle(traj, (10, 20), (600, 60), (0, 0, 0), -1)
+        # grndPose = groundTruthTraj[frm].strip().split()
+        # grndX = int(float(grndPose[3])) + canvasWCorr
+        # grndY = int(float(grndPose[11])) + canvasHCorr
+
+        # cv2.circle(traj, (grndX, grndY), 1, (0, 0, 255), 2)
+        # cv2.rectangle(traj, (10, 20), (600, 60), (0, 0, 0), -1)
         text = "Coordinates: x=%2fm y=%2fm z=%2fm" % (translation[0], translation[1], translation[2])
-        cv2.putText(traj, text, (20, 40), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, 8)
-        cv2.circle(traj, (draw_x, draw_y), 1,
-                   (frm * 255 / (endFrame - startFrame), 255 - frm * 255 / (endFrame - startFrame), 0), 1)
-
+        # cv2.putText(traj, text, (20, 40), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, 8)
+        # cv2.circle(traj, (draw_x, draw_y), 1,
+        #            (frm * 255 / (endFrame - startFrame), 255 - frm * 255 / (endFrame - startFrame), 0), 1)
+        cv2.circle(traj, (draw_x, draw_y), 3, (255, 255, 255), 3)
+        print('pos', draw_x, draw_y)
         if showLiveTrajectory:
             cv2.imshow('Trajectory', traj)
             cv2.waitKey(1)
 
-        if frm % 100 == 0:
-            cv2.imwrite('mapClique.png', traj)
+        # if frm % 10 == 0:
+        #     cv2.imwrite('mapClique.png', traj)
+        cv2.imwrite('mapClique.png', traj)
 
     if frm % 10 == 0:
         print(frm)
