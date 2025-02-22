@@ -62,7 +62,7 @@ rightImagePath = datapath + '/right/'
 translation = None
 rotation = None
 
-fpPoseOut = open('svoPoseOut_Clique.txt', 'w')
+fpPoseOut = open('../test/custom/1/svoPoseOut_Clique.txt', 'w')
 outtxt = ''
 groundTruthTraj = []
 # if plotTrajectory:

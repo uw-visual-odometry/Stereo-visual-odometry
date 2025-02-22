@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 def saveDebugImg(imgIn, frmId, tag, points, color=None, postTag=''):
-    if not os.path.exists('debugImgs'):
-        os.makedirs('debugImgs')
+    if not os.path.exists('../test/custom/1/debugImgs'):
+        os.makedirs('../test/custom/1/debugImgs')
 
     imgD = imgIn.copy()
     if isinstance(points, list):

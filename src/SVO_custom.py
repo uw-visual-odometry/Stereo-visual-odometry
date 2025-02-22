@@ -62,7 +62,7 @@ rightImagePath = datapath + '/right/'
 translation = None
 rotation = None
 
-fpPoseOut = open('svoPoseOut_Clique.txt', 'w')
+fpPoseOut = open('../test/custom/1/svoPoseOut_Clique.txt', 'w')
 outtxt = ''
 groundTruthTraj = []
 # if plotTrajectory:
@@ -74,13 +74,23 @@ canvasH = 3000
 canvasW = 3000
 traj = np.zeros((canvasH, canvasW, 3), dtype=np.uint8)
 
+cameraMatrix1 = [[601.45570622, 0., 379.14165792],
+                 [0., 601.55897743, 270.86295485],
+                 [0., 0., 1.]]
+cameraMatrix2 = [[601.19002295, 0., 388.78358635],
+                 [0., 600.81138214, 313.08172803],
+                 [0., 0., 1.]]
+f1 = Proj1[0][0]
+f2 = Proj2[0][0]
+B = cameraDistance = 0.065
+
 for frm in range(startFrame + 1, endFrame + 1, 5):
 
     # reuse T-1 data instead of reading again-again
     # same with feature computation - anything that can be reused
     imgPath = leftImagePath + f'frame_{frm:04}.jpg'
     ImT1_L = cv2.imread(imgPath, 0)  # 0 flag returns a grayscale image
-    print(imgPath)
+
     imgPath = rightImagePath + f'frame_{frm:04}.jpg'
     ImT1_R = cv2.imread(imgPath, 0)
 
@@ -102,10 +112,29 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
     ImT2_disparity = disparityEngine.compute(ImT2_L, ImT2_R).astype(np.float32)
     ImT2_disparityA = np.divide(ImT2_disparity, 16.0)
 
-    if outputDebug:
-        fname = 'debugImgs/diparity_' + str(frm) + '.png'
-        cv2.imwrite(fname, ImT2_disparityA)
+    depth1 = (f1 * B) / (ImT1_disparity + 1e-6)
+    print(imgPath, depth1)
 
+    if outputDebug:
+        # depth_normalized = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
+        # depth_colormap = cv2.applyColorMap(depth_normalized.astype(np.uint8), cv2.COLORMAP_JET)
+        #
+        # cv2.imshow("Depth Map", depth_colormap)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        fname = 'debugImgs/diparity_' + str(frm) + '.png'
+        cv2.imwrite(fname, ImT1_disparityA)
+
+        fname = 'debugImgs/depth_' + str(frm) + '.png'
+        cv2.imwrite(fname, depth1)
+
+        depth_normalized = cv2.normalize(depth1, None, 0, 255, cv2.NORM_MINMAX)
+        depth_colormap = cv2.applyColorMap(depth_normalized.astype(np.uint8), cv2.COLORMAP_JET)
+
+        fname = 'debugImgs/depth_norm_' + str(frm) + '.png'
+        cv2.imwrite(fname, depth_colormap)
+    continue
     TILE_H = 10
     TILE_W = 20
 
