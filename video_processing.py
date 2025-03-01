@@ -1,7 +1,7 @@
 import cv2
 import os
 
-video_path = "testgood1.mp4"
+video_path = "test2-30.mp4"
 output_folder_left = "frames/left"
 output_folder_right = "frames/right"
 

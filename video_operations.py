@@ -24,7 +24,7 @@ for i in range(w):
 # cap.release()
 #
 # # get frame shape
-# img = cv2.imread('./frames/frame_0000.jpg')
+# img = cv2.imread('./frames1/frame_0000.jpg')
 # print(img.shape)
 # # cv2.imwrite('./out_test.jpg', img)
 #
