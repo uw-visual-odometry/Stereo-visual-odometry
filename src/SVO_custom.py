@@ -46,6 +46,7 @@ if __name__ == "__main__":
     #     for column in range(4):
     #         Proj2[row, column] = float(P2Vals[row*4 + column + 1])
 
+# first camera set
 Proj1 = [[516.12439269, 0., 468.51480865, 0.],
          [0., 516.12439269, 295.33118057, 0.],
          [0., 0., 1., 0.]]
@@ -53,6 +54,7 @@ Proj2 = [[5.16124393e+02, 0.00000000e+00, 4.68514809e+02, -3.41186792e+04],
          [0.00000000e+00, 5.16124393e+02, 2.95331181e+02, 0.00000000e+00],
          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]]
 
+# second camera set
 Proj1 = [[612.52727122, 0., 799.55836578, 0.],
          [0., 612.52727122, 604.13082592, 0.],
          [0., 0., 1., 0.]]
@@ -68,7 +70,8 @@ rightImagePath = datapath + '/right/'
 translation = None
 rotation = None
 
-fpPoseOut = open('../test/custom/1/svoPoseOut_Clique.txt', 'w')
+os.makedirs("/debugImgs", exist_ok=True)
+fpPoseOut = open('svoPoseOut_Clique.txt', 'w')
 outtxt = ''
 groundTruthTraj = []
 # if plotTrajectory:
@@ -80,12 +83,6 @@ canvasH = 3000
 canvasW = 3000
 traj = np.zeros((canvasH, canvasW, 3), dtype=np.uint8)
 
-cameraMatrix1 = [[601.45570622, 0., 379.14165792],
-                 [0., 601.55897743, 270.86295485],
-                 [0., 0., 1.]]
-cameraMatrix2 = [[601.19002295, 0., 388.78358635],
-                 [0., 600.81138214, 313.08172803],
-                 [0., 0., 1.]]
 f1 = Proj1[0][0]
 f2 = Proj2[0][0]
 B = cameraDistance = 0.065
@@ -119,9 +116,10 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
     ImT2_disparityA = np.divide(ImT2_disparity, 16.0)
 
     depth1 = (f1 * B) / (ImT1_disparity + 1e-6)
-    print(imgPath, depth1)
+    print(imgPath)
 
     if outputDebug:
+        print('outputDebug')
         # depth_normalized = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
         # depth_colormap = cv2.applyColorMap(depth_normalized.astype(np.uint8), cv2.COLORMAP_JET)
         #
