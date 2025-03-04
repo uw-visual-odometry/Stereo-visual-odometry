@@ -6,7 +6,7 @@ from scipy.optimize import least_squares
 import os
 import inlierDetector
 from helperFunctions import genEulerZXZMatrix, minimizeReprojection, generate3DPoints
-from utils import saveDebugImg
+from utils import *
 
 if __name__ == "__main__":
     # used in file path names
@@ -70,7 +70,7 @@ rightImagePath = datapath + '/right/'
 translation = None
 rotation = None
 
-os.makedirs("/debugImgs", exist_ok=True)
+os.makedirs("debugImgs", exist_ok=True)
 fpPoseOut = open('svoPoseOut_Clique.txt', 'w')
 outtxt = ''
 groundTruthTraj = []
@@ -87,7 +87,9 @@ f1 = Proj1[0][0]
 f2 = Proj2[0][0]
 B = cameraDistance = 0.065
 
-for frm in range(startFrame + 1, endFrame + 1, 5):
+diff = 20
+
+for frm in range(startFrame + 1, endFrame + 1, diff):
 
     # reuse T-1 data instead of reading again-again
     # same with feature computation - anything that can be reused
@@ -97,11 +99,14 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
     imgPath = rightImagePath + f'frame_{frm:04}.jpg'
     ImT1_R = cv2.imread(imgPath, 0)
 
-    imgPath = leftImagePath + f'frame_{frm + 1:04}.jpg'
+    imgPath = leftImagePath + f'frame_{frm + diff:04}.jpg'
     ImT2_L = cv2.imread(imgPath, 0)
 
-    imgPath = rightImagePath + f'frame_{frm + 1:04}.jpg'
+    imgPath = rightImagePath + f'frame_{frm + diff:04}.jpg'
     ImT2_R = cv2.imread(imgPath, 0)
+
+    ImT1_L, ImT1_R = remap(ImT1_L, ImT1_R)
+    ImT2_L, ImT2_R = remap(ImT2_L, ImT2_R)
 
     block = 11
     # emperical values from P1, P2 as suggested in Ocv documentation
@@ -119,26 +124,9 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
     print(imgPath)
 
     if outputDebug:
-        print('outputDebug')
-        # depth_normalized = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
-        # depth_colormap = cv2.applyColorMap(depth_normalized.astype(np.uint8), cv2.COLORMAP_JET)
-        #
-        # cv2.imshow("Depth Map", depth_colormap)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
         fname = 'debugImgs/diparity_' + str(frm) + '.png'
         cv2.imwrite(fname, ImT1_disparityA)
 
-        fname = 'debugImgs/depth_' + str(frm) + '.png'
-        cv2.imwrite(fname, depth1)
-
-        depth_normalized = cv2.normalize(depth1, None, 0, 255, cv2.NORM_MINMAX)
-        depth_colormap = cv2.applyColorMap(depth_normalized.astype(np.uint8), cv2.COLORMAP_JET)
-
-        fname = 'debugImgs/depth_norm_' + str(frm) + '.png'
-        cv2.imwrite(fname, depth_colormap)
-    continue
     TILE_H = 10
     TILE_W = 20
 
@@ -253,6 +241,9 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
         numPoints = trackPoints1_KLT_L_3d.shape[0]
         d3dPointsT1 = generate3DPoints(trackPoints1_KLT_L_3d, trackPoints1_KLT_R_3d, Proj1, Proj2)
         d3dPointsT2 = generate3DPoints(trackPoints2_KLT_L_3d, trackPoints2_KLT_R_3d, Proj1, Proj2)
+
+        # visualize_point_cloud(d3dPointsT1)
+        # save_point_cloud(d3dPointsT1, f"point_cloud_frame_{frm}.ply")
 
         if useRansac:
             ransacError = float('inf')
@@ -400,9 +391,9 @@ for frm in range(startFrame + 1, endFrame + 1, 5):
         # cv2.rectangle(traj, (10, 20), (600, 60), (0, 0, 0), -1)
         text = "Coordinates: x=%2fm y=%2fm z=%2fm" % (translation[0], translation[1], translation[2])
         # cv2.putText(traj, text, (20, 40), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1, 8)
-        # cv2.circle(traj, (draw_x, draw_y), 1,
-        #            (frm * 255 / (endFrame - startFrame), 255 - frm * 255 / (endFrame - startFrame), 0), 1)
-        cv2.circle(traj, (draw_x, draw_y), 3, (255, 255, 255), 3)
+        cv2.circle(traj, (draw_x, draw_y), 1,
+                   (frm * 255 / (endFrame - startFrame), 255 - frm * 255 / (endFrame - startFrame), 0), -1)
+        # cv2.circle(traj, (draw_x, draw_y), 1, (255, 255, 255), 1)
         print('pos', draw_x, draw_y)
         if showLiveTrajectory:
             cv2.imshow('Trajectory', traj)

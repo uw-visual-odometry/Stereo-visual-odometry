@@ -3,7 +3,7 @@
 # (currently not useful) sequence from which the images would be selected from inside the sequences folder in the kitti dataset
 sequence=1
 start_frame=300
-end_frame=330
+end_frame=2200
 use_sift=True
 use_ransac=True
 live_plot=True
