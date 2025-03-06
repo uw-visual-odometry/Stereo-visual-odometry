@@ -181,7 +181,7 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     trackPoints2_KLT = np.around(trackPoints2_KLT_t)
 
     # among tracked points take points within error measue
-    error = 4
+    error = 10
     errTrackablePoints = err[ptTrackable, ...]
     errThresholdedPoints = np.where(errTrackablePoints < error, 1, 0).astype(bool)
     trackPoints1_KLT = trackPoints1_KLT[errThresholdedPoints, ...]
@@ -379,8 +379,8 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     # print ()
 
     if plotTrajectory:
-        canvasWCorr = 290
-        canvasHCorr = 200
+        canvasWCorr = 1000
+        canvasHCorr = 1000
         draw_x, draw_y = int(translation[0]) + canvasWCorr, int(translation[2]) + canvasHCorr
 
         # grndPose = groundTruthTraj[frm].strip().split()
