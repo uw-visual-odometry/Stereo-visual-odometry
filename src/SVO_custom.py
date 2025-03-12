@@ -62,6 +62,15 @@ Proj2 = [[6.12527271e+02, 0.00000000e+00, 7.99558366e+02, -1.66242662e+03],
          [0.00000000e+00, 6.12527271e+02, 6.04130826e+02, 0.00000000e+00],
          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]]
 
+# uwslam camera set
+Proj1 = [[1273.7736149594484, 0.0, 677.5, 0.0],
+         [0.0, 1273.7736149594484, 501.0, 0.0],
+         [0.0, 0.0, 1.0, 0.0]]
+
+Proj2 = [[1273.7736149594484, 0.0, 677.5, -180.64631356962036],
+         [0.0, 1273.7736149594484, 501.0, 5.431852884152377e-17],
+         [0.0, 0.0, 1.0, 1.0842021724855044e-19]]
+
 Proj1 = np.array(Proj1)
 Proj2 = np.array(Proj2)
 leftImagePath = datapath + '/left/'
@@ -79,15 +88,15 @@ groundTruthTraj = []
 # fpPoseFile = open(poseFile, 'r')
 # groundTruthTraj = fpPoseFile.readlines()
 
-canvasH = 3000
-canvasW = 3000
+canvasH = 1000
+canvasW = 1000
 traj = np.zeros((canvasH, canvasW, 3), dtype=np.uint8)
 
 f1 = Proj1[0][0]
 f2 = Proj2[0][0]
 B = cameraDistance = 0.065
 
-diff = 20
+diff = 10
 
 for frm in range(startFrame + 1, endFrame + 1, diff):
 
@@ -108,12 +117,15 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     ImT1_L, ImT1_R = remap(ImT1_L, ImT1_R)
     ImT2_L, ImT2_R = remap(ImT2_L, ImT2_R)
 
-    block = 11
+    # 1. Disparity Engine Parameters
+    blockSize = 11
     # emperical values from P1, P2 as suggested in Ocv documentation
-    P1 = block * block * 8
-    P2 = block * block * 32
+    P1 = blockSize * blockSize * 8
+    P2 = blockSize * blockSize * 32
+    numDisparities = 64
 
-    disparityEngine = cv2.StereoSGBM_create(minDisparity=0, numDisparities=32, blockSize=block, P1=P1, P2=P2)
+    disparityEngine = cv2.StereoSGBM_create(minDisparity=0, numDisparities=numDisparities, blockSize=blockSize, P1=P1,
+                                            P2=P2)
     ImT1_disparity = disparityEngine.compute(ImT1_L, ImT1_R).astype(np.float32)
     ImT1_disparityA = np.divide(ImT1_disparity, 16.0)
 
@@ -127,21 +139,17 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
         fname = 'debugImgs/diparity_' + str(frm) + '.png'
         cv2.imwrite(fname, ImT1_disparityA)
 
-    TILE_H = 10
-    TILE_W = 20
-
-    if useSIFT:
-        featureEngine = cv2.xfeatures2d.SIFT_create()
-    else:
-        featureEngine = cv2.FastFeatureDetector_create()
-
+    # 2. Feature Detection
     H, W = ImT1_L.shape
     if useSIFT:
+        featureEngine = cv2.SIFT_create()
         kp = featureEngine.detect(ImT1_L)
 
     else:
         # 20x10 (wxh) tiles for extracting less features from images
-
+        featureEngine = cv2.FastFeatureDetector_create()
+        TILE_H = 10
+        TILE_W = 20
         kp = []
         idx = 0
         for y in range(0, H, TILE_H):
@@ -375,12 +383,9 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     outtxt = outtxt + '\n'
     # fpPoseOut.write(outtxt)
 
-    # print (outMat)
-    # print ()
-
     if plotTrajectory:
-        canvasWCorr = 1000
-        canvasHCorr = 1000
+        canvasWCorr = 500
+        canvasHCorr = 500
         draw_x, draw_y = int(translation[0]) + canvasWCorr, int(translation[2]) + canvasHCorr
 
         # grndPose = groundTruthTraj[frm].strip().split()

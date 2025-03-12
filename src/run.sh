@@ -5,8 +5,8 @@ sequence=1
 start_frame=300
 #start_frame=920
 end_frame=2200
-use_sift=True
-use_ransac=True
-live_plot=True
+use_sift=1
+use_ransac=1
+live_plot=0
 
 python SVO_custom.py ${sequence} ${start_frame} ${end_frame} ${use_sift} ${use_ransac} ${live_plot}

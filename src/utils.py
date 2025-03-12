@@ -8,7 +8,7 @@ def saveDebugImg(imgIn, frmId, tag, points, color=None, postTag=''):
         os.makedirs('debugImgs')
 
     imgD = imgIn.copy()
-    if isinstance(points, list):
+    if isinstance(points, list) or isinstance(points, tuple):
         imgD = cv2.drawKeypoints(imgIn, points, imgD, color=color)
     else:
         imgD = cv2.cvtColor(imgD,cv2.COLOR_GRAY2RGB)
