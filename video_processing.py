@@ -1,3 +1,4 @@
+# process 1 file (left & right within one file)
 import cv2
 import os
 

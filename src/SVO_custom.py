@@ -30,7 +30,10 @@ if __name__ == "__main__":
     outputDebug = True
     print('SIFT:', useSIFT, 'ransac:', useRansac, 'showTrajectory:', showLiveTrajectory)
 
+    # 2nd land test
     datapath = '../frames'
+    # uwslam data
+    # datapath = '../../Datasets/UWslam/Images'
     #
     # calibFileName = datapath + '/calib.txt'
     # calibFile = open(calibFileName, 'r').readlines()
@@ -63,13 +66,13 @@ Proj2 = [[6.12527271e+02, 0.00000000e+00, 7.99558366e+02, -1.66242662e+03],
          [0.00000000e+00, 0.00000000e+00, 1.00000000e+00, 0.00000000e+00]]
 
 # uwslam camera set
-Proj1 = [[1273.7736149594484, 0.0, 677.5, 0.0],
-         [0.0, 1273.7736149594484, 501.0, 0.0],
-         [0.0, 0.0, 1.0, 0.0]]
-
-Proj2 = [[1273.7736149594484, 0.0, 677.5, -180.64631356962036],
-         [0.0, 1273.7736149594484, 501.0, 5.431852884152377e-17],
-         [0.0, 0.0, 1.0, 1.0842021724855044e-19]]
+# Proj1 = [[1273.7736149594484, 0.0, 677.5, 0.0],
+#          [0.0, 1273.7736149594484, 501.0, 0.0],
+#          [0.0, 0.0, 1.0, 0.0]]
+#
+# Proj2 = [[1273.7736149594484, 0.0, 677.5, -180.64631356962036],
+#          [0.0, 1273.7736149594484, 501.0, 5.431852884152377e-17],
+#          [0.0, 0.0, 1.0, 1.0842021724855044e-19]]
 
 Proj1 = np.array(Proj1)
 Proj2 = np.array(Proj2)
@@ -103,15 +106,19 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     # reuse T-1 data instead of reading again-again
     # same with feature computation - anything that can be reused
     imgPath = leftImagePath + f'frame_{frm:04}.jpg'
+    # imgPath = leftImagePath + f'0000{frm:03}00000000.png'
     ImT1_L = cv2.imread(imgPath, 0)  # 0 flag returns a grayscale image
 
     imgPath = rightImagePath + f'frame_{frm:04}.jpg'
+    # imgPath = rightImagePath + f'0000{frm:03}00000000.png'
     ImT1_R = cv2.imread(imgPath, 0)
 
     imgPath = leftImagePath + f'frame_{frm + diff:04}.jpg'
+    # imgPath = leftImagePath + f'0000{frm + diff:03}00000000.png'
     ImT2_L = cv2.imread(imgPath, 0)
 
     imgPath = rightImagePath + f'frame_{frm + diff:04}.jpg'
+    # imgPath = rightImagePath + f'0000{frm + diff:03}00000000.png'
     ImT2_R = cv2.imread(imgPath, 0)
 
     ImT1_L, ImT1_R = remap(ImT1_L, ImT1_R)
@@ -122,7 +129,7 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
     # emperical values from P1, P2 as suggested in Ocv documentation
     P1 = blockSize * blockSize * 8
     P2 = blockSize * blockSize * 32
-    numDisparities = 64
+    numDisparities = 32
 
     disparityEngine = cv2.StereoSGBM_create(minDisparity=0, numDisparities=numDisparities, blockSize=blockSize, P1=P1,
                                             P2=P2)
@@ -387,6 +394,7 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
         canvasWCorr = 500
         canvasHCorr = 500
         draw_x, draw_y = int(translation[0]) + canvasWCorr, int(translation[2]) + canvasHCorr
+        # draw_x, draw_y = int(translation[0] * 100) + canvasWCorr, int(translation[2] * 100) + canvasHCorr
 
         # grndPose = groundTruthTraj[frm].strip().split()
         # grndX = int(float(grndPose[3])) + canvasWCorr
@@ -407,9 +415,6 @@ for frm in range(startFrame + 1, endFrame + 1, diff):
         # if frm % 10 == 0:
         #     cv2.imwrite('mapClique.png', traj)
         cv2.imwrite('mapClique.png', traj)
-
-    if frm % 10 == 0:
-        print(frm)
 cv2.imwrite('mapClique.png', traj)
 fpPoseOut.write(outtxt)
 fpPoseOut.close()
